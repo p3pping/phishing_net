@@ -24,7 +24,8 @@ class PhishDB:
     def insert_url_rating(self, new_url, new_rating):
         session = self.sessionmaker()
         current_index = self.get_increment("url")
-        current_index += 1
+        if(current_index is None):
+            current_index = self.create_increment("url")
         new_url = Url(id=current_index, link=new_url, rating=new_rating)
         session.add(new_url)
         try:
@@ -80,12 +81,29 @@ class PhishDB:
         
         return increment_row
     
+    def create_increment(self, tablename):
+        session = self.sessionmaker()
+        increment_row = Increment(table=tablename, value=0)
+        session.add(increment_row)
+        try:
+            session.commit()
+        except Exception as ex:
+            session.rollback()
+            print("Error creating table increment {0}\n".format(tablename))
+            print(ex)
+            return ex
+        return increment_row.value
+    
     def get_increment(self, table_name):
         session = self.sessionmaker()
         increment_row = session.query(Increment).filter(Increment.table == table_name).first()
         if(increment_row is None):
             return None
         return increment_row.value
+    
+    def get_all_increments(self):
+        session = self.sessionmaker()
+        return session.query(Increment).all()
 
 phish_db = PhishDB()
         
