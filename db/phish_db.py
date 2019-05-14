@@ -3,6 +3,7 @@ from sqlalchemy import Table, Column, String, Integer, MetaData
 from db_base import Base
 from sqlalchemy.orm.session import sessionmaker
 from url_tbl import Url
+from increment_tbl import Increment
 
 class PhishDB:
     def __init__(self):
@@ -20,16 +21,20 @@ class PhishDB:
         else:
             return our_url.rating
     
-    def insert_url_rating(self, new_id, new_url, new_rating):
+    def insert_url_rating(self, new_url, new_rating):
         session = self.sessionmaker()
-        new_url = Url(id=new_id, link=new_url, rating=new_rating)
+        current_index = self.get_increment("url")
+        current_index += 1
+        new_url = Url(id=current_index, link=new_url, rating=new_rating)
         session.add(new_url)
         try:
             session.commit()
         except Exception as ex:
+            session.rollback()
             print("Exception occured inserting url rating.\n")
             print(ex)
             return ex
+        self.increment_table_index("url")
         return new_url
     
     def set_url_rating(self, url, new_rating):
@@ -41,10 +46,46 @@ class PhishDB:
         try:
             session.commit()
         except Exception as ex:
+            session.rollback()
             print("Exception occured setting url rating.\n")
             print(ex)
             return ex
-        return our_url         
+        return our_url
+    
+    def increment_table_index(self, table_name):
+        session = self.sessionmaker()
+        increment_row = session.query(Increment).filter(Increment.table == table_name).first()
+
+        #create increment if it doesnt exist
+        if(increment_row is None):
+            increment_row = Increment(id=table_name, value=0)
+            session.add(increment_row)
+            try:
+                session.commit()
+            except Exception as ex:
+                session.rollback()
+                print("Error creating table increment {0}\n".format(table_name))
+                print(ex)
+                return ex
+        #increment the increment?
+        increment_row.value += 1
+        
+        try:
+            session.commit()
+        except Exception as ex:
+            session.rollback()
+            print("Error incrementing table increment {0}\n".format(table_name))
+            print(ex)
+            return ex
+        
+        return increment_row
+    
+    def get_increment(self, table_name):
+        session = self.sessionmaker()
+        increment_row = session.query(Increment).filter(Increment.table == table_name).first()
+        if(increment_row is None):
+            return None
+        return increment_row.value
 
 phish_db = PhishDB()
         

@@ -46,7 +46,7 @@ class UrlRating(Resource):
         url_row = None
         if(rating < 0):
             #create new rating
-            url_row = phish_db.insert_url_rating(1,url,1)
+            url_row = phish_db.insert_url_rating(url,1)
             if(url_row is Exception):
                 return {
                 "result" : "failed",
