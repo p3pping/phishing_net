@@ -2,7 +2,7 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from url_rating import UrlRating
 from url_rank import UrlRank
-from debug_route import DebugIncrement
+from debug_route import DebugIncrement, DebugUrl
 from db.phish_db import PhishDB, phish_db
 
 app = Flask(__name__)
@@ -12,4 +12,5 @@ if(__name__ == "__main__"):
     api.add_resource(UrlRating, '/rating')
     api.add_resource(UrlRank, '/rank')
     api.add_resource(DebugIncrement, '/debugIncrement')
+    api.add_resource(DebugUrl, '/debugUrl')
     app.run(debug=True)

@@ -13,16 +13,16 @@ class PhishDB:
         self.sessionmaker = sessionmaker(bind=self.db_engine)
         print("Database Created")
     
-    def get_url_rating(self, url):
-        session = self.sessionmaker()
-        our_url = session.query(Url).filter(Url.link == url).first()
+    def get_url_rating(self, session, url):
+        #session = self.sessionmaker()
+        our_url = session.query(Url).filter(Url.link == url).first()        
         if our_url is None:
             return -1
         else:
             return our_url.rating
     
-    def insert_url_rating(self, new_url, new_rating):
-        session = self.sessionmaker()
+    def insert_url_rating(self, session, new_url, new_rating):
+        #session = self.sessionmaker()
         current_index = self.get_increment("url")
         if(current_index is None):
             current_index = self.create_increment("url")
@@ -38,8 +38,8 @@ class PhishDB:
         self.increment_table_index("url")
         return new_url
     
-    def set_url_rating(self, url, new_rating):
-        session = self.sessionmaker()
+    def set_url_rating(self, session, url, new_rating):
+        #session = self.sessionmaker()
         our_url = session.query(Url).filter(Url.link == url).first()
         if our_url is None:
             return -1
@@ -53,8 +53,12 @@ class PhishDB:
             return ex
         return our_url
     
-    def increment_table_index(self, table_name):
-        session = self.sessionmaker()
+    def gel_all_url_ratings(self, session):
+        #session = self.sessionmaker()
+        return session.query(Url).all()
+    
+    def increment_table_index(self, session,  table_name):
+        #session = self.sessionmaker()
         increment_row = session.query(Increment).filter(Increment.table == table_name).first()
 
         #create increment if it doesnt exist
@@ -81,8 +85,8 @@ class PhishDB:
         
         return increment_row
     
-    def create_increment(self, tablename):
-        session = self.sessionmaker()
+    def create_increment(self, session,  tablename):
+        #session = self.sessionmaker()
         increment_row = Increment(table=tablename, value=0)
         session.add(increment_row)
         try:
@@ -94,16 +98,15 @@ class PhishDB:
             return ex
         return increment_row.value
     
-    def get_increment(self, table_name):
-        session = self.sessionmaker()
+    def get_increment(self, session,  table_name):
+        #session = self.sessionmaker()
         increment_row = session.query(Increment).filter(Increment.table == table_name).first()
         if(increment_row is None):
             return None
         return increment_row.value
     
-    def get_all_increments(self):
-        session = self.sessionmaker()
+    def get_all_increments(self, session):
+        #session = self.sessionmaker()
         return session.query(Increment).all()
 
 phish_db = PhishDB()
-        

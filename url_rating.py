@@ -4,6 +4,7 @@ from db.phish_db import phish_db
 
 class UrlRating(Resource):    
     def get(self):
+        session = phish_db.sessionmaker()
         #if no url is provided gtfo
         if("url" not in request.args.keys()):
             return {
@@ -14,7 +15,7 @@ class UrlRating(Resource):
 
         #look for a rating
         url = request.args["url"]
-        rating = phish_db.get_url_rating(url)       
+        rating = phish_db.get_url_rating(session, url)       
 
         #found a rating
         if(rating > 0):
@@ -31,6 +32,7 @@ class UrlRating(Resource):
             }
         
     def post(self):
+        session = phish_db.sessionmaker()
         #if no url is provided gtfo
         if("url" not in request.args.keys()):
             return {
@@ -42,11 +44,11 @@ class UrlRating(Resource):
         url = request.args["url"]
 
         #do we have the url already?
-        rating = phish_db.get_url_rating(url)
+        rating = phish_db.get_url_rating(session, url)
         url_row = None
         if(rating < 0):
             #create new rating
-            url_row = phish_db.insert_url_rating(url,1)
+            url_row = phish_db.insert_url_rating(session, url,1)
             if(url_row is Exception):
                 return {
                 "result" : "failed",
@@ -62,7 +64,7 @@ class UrlRating(Resource):
         
         #we already have a rating so update it
         rating += 1
-        url_row = phish_db.set_url_rating(url, rating)
+        url_row = phish_db.set_url_rating(session, url, rating)
 
         return {
             "result" : "success",
